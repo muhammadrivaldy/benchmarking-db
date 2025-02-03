@@ -8,6 +8,12 @@ scrape_configs:
         labels:
           instance: "PostgreSQL Database"
 
+  - job_name: "mysql_exporter"
+    static_configs:
+      - targets: ["mysql_exporter:9104"]
+        labels:
+          instance: "MySQL Database"
+
   - job_name: "cadvisor"
     static_configs:
       - targets: ["cadvisor:8080"]
