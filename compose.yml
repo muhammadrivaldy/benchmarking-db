@@ -20,6 +20,10 @@ services:
       - "5432:5432"
     networks:
       - monitoring
+    command:
+      ["postgres", "-c", "config_file=/var/lib/postgresql/data/postgresql.conf"]
+    volumes:
+      - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
     deploy:
       resources:
         limits:
@@ -30,7 +34,7 @@ services:
     image: wrouesnel/postgres_exporter
     container_name: postgres_exporter
     environment:
-      DATA_SOURCE_NAME: "postgresql://admin:admin@postgres_db:5432/mydb?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://admin:admin@postgres_db/mydb?sslmode=disable"
     ports:
       - "9187:9187"
     depends_on:
