@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"sync"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
@@ -20,93 +22,81 @@ func main() {
 	purpose := os.Args[1]
 
 	if purpose == "run-service" {
-		runService()
+		totalUserStr := os.Args[2]
+		totalUser, _ := strconv.Atoi(totalUserStr)
+		dataPerUserStr := os.Args[3]
+		dataPerUser, _ := strconv.Atoi(dataPerUserStr)
+		runService(totalUser, dataPerUser)
 	} else if purpose == "run-migration" {
 		runMigration()
 	}
 }
 
-func runService() {
+func runService(totalUser int, dataPerUser int) {
 
 	wg := new(sync.WaitGroup)
 
-	n := 10
-	d := 5
-	iteration := 1
+	wg.Add(2)
 
-	for {
+	go func(wg *sync.WaitGroup) {
 
-		wg.Add(2)
+		childWG := new(sync.WaitGroup)
 
-		go func(wg *sync.WaitGroup) {
+		for i := 0; i < totalUser; i++ {
 
-			childWG := new(sync.WaitGroup)
+			childWG.Add(1)
 
-			for i := 0; i < d; i++ {
+			go func(childWG *sync.WaitGroup) {
+				defer childWG.Done()
+				db := openPostgresDB()
+				defer db.Close()
 
-				childWG.Add(1)
-
-				go func(childWG *sync.WaitGroup) {
-					defer childWG.Done()
-					db := openPostgresDB()
-					defer db.Close()
-
-					for i := 0; i < n; i++ {
-						name := fmt.Sprintf("User_%d", i)
-						address := fmt.Sprintf("Address_%d", i)
-						_, err := db.Exec("INSERT INTO mst_user (name, address) VALUES ($1, $2)", name, address)
-						if err != nil {
-							log.Fatalf("Insert failed: %v", err)
-						}
+				for i := 0; i < dataPerUser; i++ {
+					name := fmt.Sprintf("User_%d", i)
+					address := fmt.Sprintf("Address_%d", i)
+					_, err := db.Exec("INSERT INTO mst_user (name, address) VALUES ($1, $2)", name, address)
+					if err != nil {
+						log.Fatalf("Insert failed: %v", err)
 					}
-				}(childWG)
-			}
-
-			childWG.Wait()
-			wg.Done()
-		}(wg)
-
-		go func(wg *sync.WaitGroup) {
-
-			childWG := new(sync.WaitGroup)
-
-			for i := 0; i < d; i++ {
-
-				childWG.Add(1)
-
-				go func(childWG *sync.WaitGroup) {
-					defer childWG.Done()
-					db := openMySQLDB()
-					defer db.Close()
-
-					for i := 0; i < n; i++ {
-						name := fmt.Sprintf("User_%d", i)
-						address := fmt.Sprintf("Address_%d", i)
-						_, err := db.Exec("INSERT INTO mst_user (name, address) VALUES (?, ?)", name, address)
-						if err != nil {
-							log.Fatalf("Insert failed: %v", err)
-						}
-					}
-				}(childWG)
-			}
-
-			childWG.Wait()
-			wg.Done()
-		}(wg)
-
-		wg.Wait()
-
-		fmt.Printf("✅ Iteration %d is done!\n", iteration)
-		fmt.Printf("✅ %d records inserted to PostgreSQL\n", (n * d))
-		fmt.Printf("✅ %d records inserted to MySQL\n", (n * d))
-
-		n += 500
-		d += 2
-		iteration++
-		if iteration > 20 {
-			break
+				}
+			}(childWG)
 		}
-	}
+
+		childWG.Wait()
+		wg.Done()
+		fmt.Printf("✅ %d records inserted to PostgreSQL\n", (totalUser * dataPerUser))
+	}(wg)
+
+	go func(wg *sync.WaitGroup) {
+
+		childWG := new(sync.WaitGroup)
+
+		for i := 0; i < totalUser; i++ {
+
+			childWG.Add(1)
+
+			go func(childWG *sync.WaitGroup) {
+				defer childWG.Done()
+				db := openMySQLDB()
+				defer db.Close()
+
+				for i := 0; i < dataPerUser; i++ {
+					name := fmt.Sprintf("User_%d", i)
+					address := fmt.Sprintf("Address_%d", i)
+					_, err := db.Exec("INSERT INTO mst_user (name, address) VALUES (?, ?)", name, address)
+					if err != nil {
+						log.Fatalf("Insert failed: %v", err)
+					}
+				}
+			}(childWG)
+		}
+
+		childWG.Wait()
+		wg.Done()
+		fmt.Printf("✅ %d records inserted to MySQL\n", (totalUser * dataPerUser))
+	}(wg)
+
+	wg.Wait()
 }
 
 func openPostgresDB() *sql.DB {
@@ -123,6 +113,10 @@ func openPostgresDB() *sql.DB {
 	if err != nil {
 		log.Fatalf("Could not connect to database: %v", err)
 	}
+
+	db.SetMaxIdleConns(20)
+	db.SetMaxOpenConns(30)
+	db.SetConnMaxIdleTime(30 * time.Second)
 
 	err = db.Ping()
 	if err != nil {
@@ -146,6 +140,10 @@ func openMySQLDB() *sql.DB {
 	if err != nil {
 		log.Fatalf("Could not connect to database: %v", err)
 	}
+
+	db.SetMaxIdleConns(20)
+	db.SetMaxOpenConns(30)
+	db.SetConnMaxIdleTime(30 * time.Second)
 
 	err = db.Ping()
 	if err != nil {

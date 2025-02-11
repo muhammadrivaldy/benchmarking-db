@@ -24,7 +24,7 @@
         {
             "datasource": {
                 "type": "prometheus",
-                "uid": "aec3598ln8a2oe"
+                "uid": "eecr5gym8dfk0e"
             },
             "fieldConfig": {
                 "defaults": {
@@ -138,7 +138,7 @@
         {
             "datasource": {
                 "type": "prometheus",
-                "uid": "aec3598ln8a2oe"
+                "uid": "eecr5gym8dfk0e"
             },
             "fieldConfig": {
                 "defaults": {
@@ -250,7 +250,7 @@
         {
             "datasource": {
                 "type": "prometheus",
-                "uid": "aec3598ln8a2oe"
+                "uid": "eecr5gym8dfk0e"
             },
             "fieldConfig": {
                 "defaults": {
@@ -343,7 +343,7 @@
                         "uid": "cec33nlut730ga"
                     },
                     "editorMode": "code",
-                    "expr": "rate(mysql_global_status_commands_total{command=\"insert\"}[1m])",
+                    "expr": "sum(rate(mysql_global_status_queries{instance=\"MySQL Database\"}[1m]))",
                     "hide": false,
                     "legendFormat": "MySQL",
                     "range": true,
@@ -355,14 +355,14 @@
                         "uid": "cec33nlut730ga"
                     },
                     "editorMode": "code",
-                    "expr": "rate(pg_stat_database_tup_inserted{datname=\"mydb\"}[1m])",
+                    "expr": "sum(rate(pg_stat_database_xact_commit{instance=\"PostgreSQL Database\"}[1m]))",
                     "hide": false,
                     "legendFormat": "PostgreSQL",
                     "range": true,
                     "refId": "A"
                 }
             ],
-            "title": "Throughput (DB Insert)",
+            "title": "Query Per Second",
             "type": "timeseries"
         }
     ],
@@ -381,6 +381,6 @@
     "timezone": "browser",
     "title": "Benchmarking DB - Dashboard",
     "uid": "fec0u6wmec9a8a",
-    "version": 15,
+    "version": 3,
     "weekStart": ""
 }
