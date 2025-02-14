@@ -114,8 +114,8 @@ func openPostgresDB() *sql.DB {
 		log.Fatalf("Could not connect to database: %v", err)
 	}
 
-	db.SetMaxIdleConns(20)
-	db.SetMaxOpenConns(30)
+	db.SetMaxIdleConns(1)
+	db.SetMaxOpenConns(1)
 	db.SetConnMaxIdleTime(30 * time.Second)
 
 	err = db.Ping()
@@ -141,8 +141,8 @@ func openMySQLDB() *sql.DB {
 		log.Fatalf("Could not connect to database: %v", err)
 	}
 
-	db.SetMaxIdleConns(20)
-	db.SetMaxOpenConns(30)
+	db.SetMaxIdleConns(1)
+	db.SetMaxOpenConns(1)
 	db.SetConnMaxIdleTime(30 * time.Second)
 
 	err = db.Ping()
