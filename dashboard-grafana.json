@@ -18,13 +18,13 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 2,
+    "id": 1,
     "links": [],
     "panels": [
         {
             "datasource": {
                 "type": "prometheus",
-                "uid": "eecr5gym8dfk0e"
+                "uid": "bed2tds5146psa"
             },
             "fieldConfig": {
                 "defaults": {
@@ -142,7 +142,7 @@
         {
             "datasource": {
                 "type": "prometheus",
-                "uid": "eecr5gym8dfk0e"
+                "uid": "bed2tds5146psa"
             },
             "fieldConfig": {
                 "defaults": {
@@ -254,7 +254,7 @@
         {
             "datasource": {
                 "type": "prometheus",
-                "uid": "eecr5gym8dfk0e"
+                "uid": "bed2tds5146psa"
             },
             "fieldConfig": {
                 "defaults": {
@@ -385,6 +385,6 @@
     "timezone": "browser",
     "title": "Benchmarking DB - Dashboard",
     "uid": "fec0u6wmec9a8a",
-    "version": 9,
+    "version": 2,
     "weekStart": ""
 }
